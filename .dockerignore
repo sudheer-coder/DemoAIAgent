@@ -1,0 +1,6 @@
+*.db
+*.db-journal
+.git
+*.bat
+tests/
+__pycache__/

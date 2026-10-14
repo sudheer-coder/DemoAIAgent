@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AgriPilot</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg">
+<meta name="theme-color" content="#1f5d3a">
+<style>
+:root{--bg:#f6f3ea;--card:#fff;--ink:#1d2a22;--muted:#6b7a70;--line:#e6e1d3;--green:#1f5d3a;--green-ink:#fff;--deny:#9e3730;--deny-bg:#fbe9e6;--warn:#b45309;--warn-bg:#fdf0dc;--good:#177245}
+@media (prefers-color-scheme:dark){:root{--bg:#121a15;--card:#1b261f;--ink:#eaf1ec;--muted:#93a399;--line:#2a382f;--green:#4cc27f;--green-ink:#08210f;--deny:#ff9d92;--deny-bg:#3a1f1c;--warn:#f0b35a;--warn-bg:#3a2b12;--good:#6fdca0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px 40px}
+main{max-width:520px;margin:0 auto}
+header{display:flex;align-items:center;gap:10px;margin:4px 0 18px}
+header img{width:34px;height:34px;border-radius:9px}
+header h1{font-size:19px;margin:0;flex:1;letter-spacing:.2px}
+.pill{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:4px 10px;background:var(--card);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 8px 30px #0000000d}
+.card h2{font-size:21px;margin:0 0 4px;line-height:1.25}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.warehouse{margin:12px 0;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-size:14.5px}
+.warehouse.ok{background:#e4f5ea;color:var(--good)}
+@media (prefers-color-scheme:dark){.warehouse.ok{background:#173324}}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
+.row span:first-child{color:var(--muted)}
+.row.total{border-bottom:0;padding-top:12px;font-weight:600}
+.profit{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding:14px;border-radius:14px;background:#e4f5ea;color:var(--good)}
+.profit.loss{background:var(--deny-bg);color:var(--deny)}
+@media (prefers-color-scheme:dark){.profit{background:#173324}}
+.profit b{font-size:25px}
+.actions{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-top:18px}
+button{font:inherit;font-weight:700;border:0;border-radius:15px;padding:16px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.55}
+.approve{background:var(--green);color:var(--green-ink);font-size:18px}
+.deny{background:var(--deny-bg);color:var(--deny)}
+.idle{text-align:center;padding:34px 20px}
+.idle .big{font-size:42px}
+.idle p{color:var(--muted);margin:6px 0 0}
+.queue{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+.running{margin-top:14px}
+.chip{display:inline-block;font-size:13px;padding:5px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);margin:0 6px 6px 0}
+.chip b{color:var(--green)}
+.enable{display:block;width:100%;margin-top:14px;background:var(--card);border:1px dashed var(--green);color:var(--green);padding:13px;font-weight:600}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:26px 0 8px}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px}
+.feed b{display:block;font-size:15px}
+.feed p{margin:4px 0 0;font-size:14px;color:var(--muted);white-space:pre-line}
+.feed time{float:right;font-size:12px;color:var(--muted);margin-left:8px}
+.empty{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/icon-192.png" alt="">
+    <h1>AgriPilot</h1>
+    <span class="pill" id="stock">Warehouse …</span>
+  </header>
+
+  <section id="stage"></section>
+  <div id="running" class="running"></div>
+  <button class="enable" id="enable" hidden>🔔 Turn on notifications</button>
+
+  <h3>What happened</h3>
+  <ul class="feed" id="feed"><li class="empty">Nothing yet.</li></ul>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let lastNotification = null;     // newest notification id already seen (so history is not replayed as alerts)
+let busy = false;
+let swReg = null;
+
+async function poll() {
+  try {
+    const r = await fetch('/api/state', {cache: 'no-store'});
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+  } catch (e) { /* offline or sleeping server: keep the last screen, retry on the next tick */ }
+}
+
+function render(s) {
+  $('#stock').textContent = 'Warehouse: ' + (s.warehouse.stock ? s.warehouse.stock.toLocaleString('en-IN') + ' nuts' : 'empty');
+  const stage = $('#stage');
+  if (s.card && !busy) {
+    const c = s.card;
+    const empty = c.warehouse.includes('⚠️');
+    stage.innerHTML = `<div class="card">
+      <div class="eyebrow">Needs your decision</div>
+      <h2>${esc(c.title)}</h2>
+      <div class="warehouse ${empty ? '' : 'ok'}">🏚️ Warehouse: ${esc(c.warehouse)}</div>
+      ${c.costs.map(r => `<div class="row"><span>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join('')}
+      <div class="row total"><span>Total cost</span><span>${esc(c.total_cost)}</span></div>
+      <div class="row total"><span>Revenue</span><span>${esc(c.revenue)}</span></div>
+      <div class="profit ${c.loss ? 'loss' : ''}"><span>Estimated profit</span><b>${esc(c.profit)}</b></div>
+      <div class="actions">
+        <button class="approve" data-d="approve" data-id="${esc(c.id)}">✓ Approve</button>
+        <button class="deny" data-d="deny" data-id="${esc(c.id)}">✗ Deny</button>
+      </div>
+      ${s.waiting > 1 ? `<div class="queue">${s.waiting - 1} more waiting after this one</div>` : ''}
+    </div>`;
+  } else if (!s.card) {
+    stage.innerHTML = `<div class="card idle"><div class="big">🥥</div><b>Nothing needs you</b>
+      <p>When a buyer's message arrives, the approval card appears here. You can close the app after you tap.</p></div>`;
+  }
+  $('#running').innerHTML = s.active.filter(t => t.state !== 'created').map(t =>
+    `<span class="chip">${esc(t.id)} · <b>${esc(t.state)}</b>${t.attention ? ' ⚠️' : ''}</span>`).join('');
+
+  const feed = $('#feed');
+  feed.innerHTML = s.notifications.length ? s.notifications.map(n =>
+    `<li><time>${new Date(n.created * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</time><b>${esc(n.title)}</b><p>${esc(n.body)}</p></li>`).join('')
+    : '<li class="empty">Nothing yet.</li>';
+
+  const newest = s.notifications.length ? s.notifications[0].id : 0;
+  if (lastNotification === null) lastNotification = newest;      // first load: don't alert for history
+  else if (newest > lastNotification) {
+    s.notifications.filter(n => n.id > lastNotification).reverse().forEach(showLocal);
+    lastNotification = newest;
+  }
+  updateEnable();
+}
+
+// App open: show the alert locally. App closed: the server's Web Push shows it. Same tag, so never twice.
+function showLocal(n) {
+  if (!swReg || Notification.permission !== 'granted') return;
+  swReg.showNotification(n.title, {body: n.body, tag: 'n' + n.id, icon: '/icon-192.png', badge: '/icon-192.png', data: {url: '/'}});
+}
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-d]');
+  if (!b) return;
+  busy = true;
+  document.querySelectorAll('button[data-d]').forEach(x => x.disabled = true);
+  try {
+    const r = await fetch('/api/decision', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: b.dataset.id, decision: b.dataset.d})});
+    if (!r.ok) throw new Error((await r.json()).error);
+  } catch (err) { alert(err.message || 'Could not send. Try again.'); }
+  busy = false; poll();
+});
+
+// ---- notifications (one tap, once) ----
+const b64 = s => Uint8Array.from(atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+function updateEnable() {
+  const ok = 'serviceWorker' in navigator && 'Notification' in window;
+  $('#enable').hidden = !ok || Notification.permission === 'granted' || Notification.permission === 'denied';
+}
+$('#enable').onclick = async () => {
+  if (await Notification.requestPermission() !== 'granted') return updateEnable();
+  try {
+    const k = await (await fetch('/api/push/key')).json();
+    if (k.available && swReg) {
+      const sub = await swReg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64(k.key)});
+      await fetch('/api/push/subscribe', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({subscription: sub})});
+    }
+  } catch (e) { /* alerts still work while the app is open */ }
+  updateEnable();
+};
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then(r => { swReg = r; return navigator.serviceWorker.ready; }).then(r => { swReg = r; });
+poll(); setInterval(poll, 1000);
+</script>
+</body>
+</html>

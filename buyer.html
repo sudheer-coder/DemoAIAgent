@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f6b43">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>AgriPilot</title>
+<link rel="icon" href="/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f1ea; --bg2:#e9efe6; --card:#ffffff; --ink:#15231b; --muted:#66756c; --line:#e3e0d5; --soft:#f7f6f1;
+  --brand:#1f6b43; --brand2:#2f9461; --brand-ink:#fff;
+  --g:#16a34a; --g-bg:#e5f6ea; --g-ink:#11703a;
+  --o:#f08c00; --o-bg:#fff1dc; --o-ink:#a35a00;
+  --on-g:#fff; --r:#e03131; --r-bg:#fde8e8; --r-ink:#b42323;
+  --n:#9aa49e; --n-bg:#f0f1ee; --n-ink:#6b756f;
+  --shadow:0 1px 2px #1a2a2010,0 10px 30px -12px #1a2a2026;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0e1511; --bg2:#122019; --card:#16211b; --ink:#e8f0eb; --muted:#90a197; --line:#24342b; --soft:#1a2720;
+  --brand:#3fbf7a; --brand2:#2f9461; --brand-ink:#06200f;
+  --g:#3ddc7e; --g-bg:#123222; --g-ink:#7ff0ad;
+  --o:#ffa94d; --o-bg:#3a2810; --o-ink:#ffc078;
+  --on-g:#06200f; --r:#ff6b6b; --r-bg:#3c1717; --r-ink:#ffa8a8;
+  --n:#5f6d65; --n-bg:#1d2923; --n-ink:#93a39a;
+  --shadow:0 1px 2px #0006,0 10px 30px -12px #000a;
+}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.45 Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:radial-gradient(1200px 500px at 10% -10%,var(--bg2),transparent 70%),var(--bg)}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+a{color:inherit}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.logo{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:24px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:var(--shadow)}
+.brand h1{margin:0;font-size:21px;font-weight:800;letter-spacing:-.3px}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.live{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--g-ink);background:var(--g-bg);padding:6px 12px;border-radius:99px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 0 0 var(--g)}
+.live.off{color:var(--r-ink);background:var(--r-bg)}.live.off i{background:var(--r)}
+.chipbtn{font:inherit;font-size:13px;font-weight:600;text-decoration:none;padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;inset:auto 0 0 0;height:4px;background:var(--accent,var(--line))}
+.stat span{display:block;font-size:12.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.stat b{display:block;font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat.g{--accent:var(--g)}.stat.o{--accent:var(--o)}.stat.r{--accent:var(--r)}.stat.p{--accent:var(--brand)}
+.stat.r.hot{background:var(--r-bg);border-color:color-mix(in srgb,var(--r) 35%,transparent)}
+
+/* composer */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;margin-bottom:22px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 2px;font-size:16px;font-weight:800}
+.panel .sub{margin:0 0 12px;color:var(--muted);font-size:13px}
+.compose{display:flex;gap:10px}
+.compose textarea{flex:1;font:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--soft);color:inherit;resize:none;min-height:50px;outline:none}
+.compose textarea:focus{border-color:var(--brand)}
+.send{font:inherit;font-weight:800;font-size:15px;border:0;border-radius:14px;padding:0 22px;cursor:pointer;color:var(--brand-ink);
+  background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 6px 16px -6px var(--brand)}
+.send:disabled{opacity:.6}
+.examples{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.examples button{font:inherit;font-size:12.5px;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:99px;padding:5px 11px;cursor:pointer}
+.examples button:hover{color:var(--ink);border-color:var(--muted)}
+.msg{margin-top:10px;font-size:13.5px;font-weight:600;min-height:20px}
+.msg.ok{color:var(--g-ink)}.msg.err{color:var(--r-ink)}
+.legend{display:grid;gap:10px}
+.legend>div{display:flex;gap:10px;align-items:center;font-size:13.5px}
+.legend small{display:block;color:var(--muted);font-size:12px}
+.wh{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13.5px;color:var(--muted)}
+.wh b{color:var(--ink)}
+
+/* status dot + pill */
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--n)}
+.s-done .dot,.dot.done{background:var(--g)}
+.s-progress .dot,.dot.progress{background:var(--o)}
+.s-failed .dot,.dot.failed{background:var(--r)}
+
+/* board */
+.boardhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px}
+.boardhead h2{margin:0;font-size:18px;font-weight:800}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px}
+.tabs button{font:inherit;font-size:13px;font-weight:700;border:0;background:transparent;color:var(--muted);border-radius:99px;padding:6px 12px;cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--card)}
+.tabs button em{font-style:normal;opacity:.7;margin-left:4px}
+
+.board{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.cols,.row{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:0}
+.cols{background:var(--soft);border-bottom:1px solid var(--line)}
+.cols div{padding:12px 16px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.cols div span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--card);border:1px solid var(--line);margin-right:7px;font-size:11px}
+.item{border-bottom:1px solid var(--line);position:relative}
+.item:last-child{border-bottom:0}
+.item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--n)}
+.item.o-done::before{background:var(--g)}.item.o-progress::before{background:var(--o)}.item.o-failed::before{background:var(--r)}
+.item.o-failed{background:linear-gradient(90deg,color-mix(in srgb,var(--r-bg) 70%,transparent),transparent 60%)}
+.cell{padding:14px 16px;min-width:0}
+.cell .lbl{display:none;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+.tx-id{display:flex;align-items:center;gap:8px}
+.tx-id b{font-size:15px;font-weight:800}
+.badge{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:99px}
+.badge.b-done{background:var(--g-bg);color:var(--g-ink)}.badge.b-progress{background:var(--o-bg);color:var(--o-ink)}
+.badge.b-failed{background:var(--r-bg);color:var(--r-ink)}.badge.b-closed{background:var(--n-bg);color:var(--n-ink)}
+.mini{display:block;margin-top:8px;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.mini .dot{display:inline-block;width:8px;height:8px;margin-right:6px;vertical-align:1px}.mini b{font-weight:700}.mini.s-done b{color:var(--g-ink)}.mini.s-progress b{color:var(--o-ink)}.mini.s-failed b{color:var(--r-ink)}
+.tx-qty{font-size:14px;font-weight:700;margin-top:4px}.tx-qty span{color:var(--muted);font-weight:500}
+.tx-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+.st{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:13px;background:var(--n-bg)}
+.st .dot{margin-top:5px}
+.st>div{flex:1;min-width:0}
+.act button{white-space:nowrap}
+.st b{display:block;font-size:13.5px;font-weight:700;line-height:1.3}
+.st small{display:block;font-size:12px;color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
+.st .eta{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:800;color:var(--o-ink)}
+.st.s-done{background:var(--g-bg)}.st.s-done b{color:var(--g-ink)}
+.st.s-progress{background:var(--o-bg)}.st.s-progress b{color:var(--o-ink)}
+.st.s-failed{background:var(--r-bg)}.st.s-failed b{color:var(--r-ink)}
+.st.s-waiting,.st.s-closed{background:transparent;border:1px dashed var(--line)}
+.st.s-waiting b,.st.s-closed b{color:var(--muted);font-weight:600}
+.act{display:flex;gap:6px;margin-top:8px}
+.act button{font:inherit;font-size:12.5px;font-weight:800;border:0;border-radius:9px;padding:7px 12px;cursor:pointer}
+.act .ok{background:var(--g);color:var(--on-g)}.act .no{background:var(--card);color:var(--r-ink);border:1px solid var(--line)}
+.act .retry{background:var(--r);color:#fff}
+.act button:disabled{opacity:.5}
+.bar{height:4px;background:var(--line);border-radius:99px;margin-top:9px;overflow:hidden;display:flex;gap:2px}
+.bar i{flex:1;background:var(--n-bg)}
+.bar i.done{background:var(--g)}.bar i.progress{background:var(--o)}.bar i.failed{background:var(--r)}
+.alertbar{grid-column:1/-1;margin:0 16px 14px;padding:10px 14px;border-radius:12px;background:var(--r-bg);color:var(--r-ink);font-size:13.5px;font-weight:600;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.alertbar span{flex:1;min-width:200px}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+.empty .big{font-size:44px}
+.empty b{display:block;color:var(--ink);font-size:16px;margin:6px 0 2px}
+.lock{padding:22px;text-align:center;color:var(--muted)}
+
+@media (max-width:980px){.stats{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}}
+.phone-legend,.pcard{display:none}
+.viewbtn{font:inherit;font-size:13px;font-weight:700;padding:7px 11px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+@media (max-width:760px){.viewbtn{display:none}}
+body.phone-ui{font-size:15px}
+body.phone-ui .wrap{padding:calc(12px + env(safe-area-inset-top)) 14px calc(150px + env(safe-area-inset-bottom))}
+body.phone-ui .hide-phone{display:none}
+body.phone-ui .top{gap:10px;margin-bottom:14px}
+body.phone-ui .logo{width:38px;height:38px;font-size:20px;border-radius:11px}
+body.phone-ui .brand h1{font-size:18px}
+body.phone-ui .brand p{font-size:12px}
+body.phone-ui .chipbtn{padding:7px 11px}
+body.phone-ui .stats{display:flex;overflow-x:auto;gap:10px;margin:0 -14px 14px;padding:2px 14px 6px;scroll-snap-type:x mandatory;scrollbar-width:none}
+body.phone-ui .stats::-webkit-scrollbar{display:none}
+body.phone-ui .stat{flex:0 0 auto;min-width:118px;padding:11px 14px;border-radius:15px;scroll-snap-align:start}
+body.phone-ui .stat span{font-size:10.5px}
+body.phone-ui .stat b{font-size:22px}
+body.phone-ui .grid2{display:block;margin:0}
+body.phone-ui .keypanel{display:none}
+body.phone-ui .composer{position:fixed;left:0;right:0;bottom:0;z-index:20;border-radius:20px 20px 0 0;border-bottom:0; padding:10px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px -10px #0003}
+body.phone-ui .composer h2,body.phone-ui .composer .sub{display:none}
+body.phone-ui .composer .examples{order:-1;flex-wrap:nowrap;overflow-x:auto;margin:0 0 8px;scrollbar-width:none}
+body.phone-ui .composer .examples::-webkit-scrollbar{display:none}
+body.phone-ui .composer .examples button{flex:none}
+body.phone-ui .composer{display:flex;flex-direction:column}
+body.phone-ui .compose{align-items:flex-end;gap:8px}
+body.phone-ui .compose textarea{min-height:46px;max-height:46px;padding:12px 16px;border-radius:23px;font-size:15px;white-space:pre;overflow-x:auto;overflow-y:hidden;line-height:20px}
+body.phone-ui .send{width:46px;height:46px;padding:0;border-radius:50%;font-size:0;flex:none}
+body.phone-ui .send::after{content:"➤";font-size:18px}
+body.phone-ui .msg{order:-2;margin:0 2px 6px;min-height:0;font-size:12.5px}
+body.phone-ui .msg:empty{display:none}
+body.phone-ui .phone-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 2px 10px}
+body.phone-ui .phone-legend span{display:inline-flex;align-items:center;gap:5px}
+body.phone-ui .phone-legend .dot{width:8px;height:8px}
+body.phone-ui .phone-legend #wh2{margin-left:auto}
+body.phone-ui .boardhead{margin:0 0 10px}
+body.phone-ui .boardhead h2{display:none}
+body.phone-ui .boardhead .spacer{display:none}
+body.phone-ui .tabs{width:100%;overflow-x:auto;scrollbar-width:none}
+body.phone-ui .tabs::-webkit-scrollbar{display:none}
+body.phone-ui .tabs button{flex:1;white-space:nowrap;padding:8px 10px}
+body.phone-ui .board{background:transparent;border:0;box-shadow:none;overflow:visible}
+body.phone-ui .cols,body.phone-ui .item{display:none}
+body.phone-ui .pcard{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;position:relative}
+body.phone-ui .pcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--n)}
+body.phone-ui .pcard.o-done::before{background:var(--g)}
+body.phone-ui .pcard.o-progress::before{background:var(--o)}
+body.phone-ui .pcard.o-failed::before{background:var(--r)}
+body.phone-ui .pc-head{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 0 18px;cursor:pointer}
+body.phone-ui .pc-head .who{flex:1;min-width:0}
+body.phone-ui .pc-head .who b{font-size:16px;font-weight:800}
+body.phone-ui .pc-head .who div{font-size:14px;font-weight:700;margin-top:2px}
+body.phone-ui .pc-head .who div span{color:var(--muted);font-weight:500}
+body.phone-ui .pc-head .who small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+body.phone-ui .chev{color:var(--muted);font-size:13px;margin-top:4px}
+body.phone-ui .track{display:grid;grid-template-columns:repeat(4,1fr);padding:14px 10px 4px 14px;position:relative}
+body.phone-ui .tstep{display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;min-width:0}
+body.phone-ui .tstep:not(:last-child)::after{content:"";position:absolute;top:13px;left:calc(50% + 15px);right:calc(-50% + 15px);height:3px;border-radius:3px;background:var(--line)}
+body.phone-ui .tstep.done:not(:last-child)::after{background:var(--g)}
+body.phone-ui .tc{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--n-bg);color:var(--n-ink);border:2px solid var(--line)}
+body.phone-ui .tstep.done .tc{background:var(--g);border-color:var(--g);color:#fff}
+body.phone-ui .tstep.progress .tc{background:var(--o-bg);border-color:var(--o);color:var(--o-ink)}
+body.phone-ui .tstep.failed .tc{background:var(--r);border-color:var(--r);color:#fff}
+body.phone-ui .tstep.closed .tc{background:var(--n-bg);color:var(--n-ink)}
+body.phone-ui .tstep em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);margin-top:5px;line-height:1.2}
+body.phone-ui .tstep.done em{color:var(--g-ink)}
+body.phone-ui .tstep.progress em{color:var(--o-ink)}
+body.phone-ui .tstep.failed em{color:var(--r-ink)}
+body.phone-ui .pc-now{margin:10px 14px 14px 18px}
+body.phone-ui .pc-now .st{padding:11px 12px}
+body.phone-ui .pc-now .act{margin-top:10px}
+body.phone-ui .pc-now .act button{flex:1;padding:12px;font-size:14px;border-radius:12px}
+body.phone-ui .pc-more{border-top:1px dashed var(--line);padding:10px 14px 14px 18px;display:grid;gap:8px}
+body.phone-ui .pc-more .lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
+body.phone-ui .pc-more .st{padding:8px 10px}
+/* phone app on a big screen: a centered phone-width column */
+@media (min-width:761px){
+body.phone-ui .wrap{max-width:480px;padding-top:24px}
+body.phone-ui .stats{margin:0 0 14px;padding:2px 0 6px;border-radius:15px}
+body.phone-ui .composer{left:50%;right:auto;width:480px;transform:translateX(-50%)}
+}
+
+/* ================= chat (first screen) ================= */
+.appbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.appbar .logo{width:34px;height:34px;font-size:18px;border-radius:10px}
+.appbar h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.2px}
+.appbar .live{padding:5px 10px;font-size:12px}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px}
+.seg button{font:inherit;font-size:13px;font-weight:700;border:0;background:transparent;color:var(--muted);border-radius:99px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--ink);color:var(--card)}
+.seg em{font-style:normal;display:inline-grid;place-items:center;min-width:17px;height:17px;border-radius:99px;background:var(--r);color:#fff;font-size:10.5px;margin-left:4px;padding:0 4px}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;flex:none}
+.view[hidden],.seg em[hidden],.viewbtn[hidden]{display:none!important}
+.appbar .logo{flex:none}
+
+.chat{max-width:760px;margin:0 auto;padding:0 16px calc(150px + env(safe-area-inset-bottom))}
+#chatView{min-height:calc(100vh - 58px);min-height:calc(100dvh - 58px)}
+body:not(.chatting) #chatView{display:flex;flex-direction:column;justify-content:center;padding-bottom:6vh}
+body:not(.chatting) .chat{padding-bottom:0;width:100%}
+body:not(.chatting) .dock{width:100%}
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 0 26px}
+body.chatting .hero{display:none}
+.hero .mark{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:34px;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:var(--shadow);margin-bottom:18px}
+.hero h2{margin:0;font-size:clamp(26px,5vw,34px);font-weight:800;letter-spacing:-.6px;line-height:1.15}
+.hero p{margin:10px 0 0;color:var(--muted);font-size:15.5px;max-width:440px}
+
+.dock{max-width:760px;margin:0 auto;padding:0 16px}
+body.chatting .dock{position:fixed;left:0;right:0;bottom:0;z-index:25;max-width:none;padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--bg) 70%,transparent)}
+body.chatting .dock>*{max-width:728px;margin-left:auto;margin-right:auto}
+.box{display:flex;align-items:flex-end;gap:6px;background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:7px 7px 7px 18px;box-shadow:var(--shadow)}
+.box:focus-within{border-color:color-mix(in srgb,var(--brand) 60%,var(--line))}
+.box textarea{flex:1;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:16px;line-height:22px;resize:none;padding:9px 0;max-height:132px;min-height:40px}
+.box textarea::placeholder{color:var(--muted)}
+.mic,.go{width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;flex:none}
+.mic{background:transparent;color:var(--ink)}
+.mic:hover{background:var(--soft)}
+.mic svg,.go svg{width:21px;height:21px}
+.mic.rec{background:var(--r);color:#fff}
+.go{background:var(--ink);color:var(--card)}
+.go:disabled{background:var(--line);color:var(--muted);cursor:default}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px}
+.hint.rec{color:var(--r-ink);font-weight:700}
+.sugg{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+body.chatting .sugg{display:none}
+.sugg button{font:inherit;font-size:13.5px;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 13px;cursor:pointer;max-width:100%}
+.sugg button small{display:block;color:var(--muted);font-size:12px}
+.sugg button:hover{border-color:var(--muted)}
+
+.thread{display:flex;flex-direction:column;gap:18px;padding-top:20px}
+.msg-u{align-self:flex-end;max-width:82%;background:var(--ink);color:var(--card);padding:10px 15px;border-radius:20px 20px 6px 20px;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg-b{display:flex;gap:10px;align-items:flex-start;max-width:100%}
+.msg-b .av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;background:linear-gradient(135deg,var(--brand),var(--brand2));flex:none;margin-top:1px}
+.msg-b .bd{flex:1;min-width:0}
+.msg-b .tx{font-size:15px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:4px}
+.msg-b .tx b{font-weight:800}
+.msg-b.err .tx{color:var(--r-ink)}
+.msg-b .pcard{margin:10px 0 0;max-width:460px}
+.typing{display:inline-flex;gap:4px;padding:10px 0}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5}
+.board-wrap{max-width:1180px;margin:0 auto;padding:16px 20px 40px}
+body.phone-ui .board-wrap{max-width:480px;padding:14px 14px 40px}
+@media (max-width:560px){.appbar h1{display:none}.seg button{padding:6px 10px}}
+
+/* ===== on a computer: show the app as a phone screen in the middle of the window ===== */
+@media (min-width:761px){
+  html:has(body.phone-ui){background:#d9ddd6}
+  body.phone-ui{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);box-shadow:0 0 0 1px var(--line),0 20px 60px -20px #0004;position:relative}
+  body.phone-ui .appbar h1{display:none}
+  body.phone-ui .seg button{padding:6px 10px}
+  body.phone-ui.chatting .dock{left:50%;right:auto;width:430px;transform:translateX(-50%)}
+  body.phone-ui .chat,body.phone-ui .dock{max-width:none}
+  body.phone-ui .hero h2{font-size:28px}
+  body.phone-ui .sugg button{flex:1 1 calc(50% - 8px)}
+  body.phone-ui .board-wrap{max-width:none}
+  body.phone-ui .msg-u{max-width:85%}
+}
+@media (min-width:761px) and (prefers-color-scheme:dark){html:has(body.phone-ui){background:#070b09}}
+</style>
+</head>
+<body class="phone-ui">
+<header class="appbar">
+  <div class="logo">🥥</div>
+  <h1>AgriPilot</h1>
+  <div class="spacer"></div>
+  <span class="live" id="live"><i></i><span>Live</span></span>
+  <div class="seg" id="seg">
+    <button data-v="chat" class="on">💬 Chat</button>
+    <button data-v="board">📊 Dashboard<em id="failbadge" hidden></em></button>
+  </div>
+  <button class="iconbtn" id="newchat" title="New chat" aria-label="New chat">✎</button>
+</header>
+
+<!-- ============ CHAT ============ -->
+<main class="view" id="chatView">
+  <div class="chat">
+    <section class="hero">
+      <div class="mark">🥥</div>
+      <h2 id="greet">Good day</h2>
+      <p>Tell me what the buyer needs: type it or tap the mic. I'll price it, book transport and deliver, and keep you posted right here.</p>
+    </section>
+    <div class="thread" id="thread"></div>
+  </div>
+  <div class="dock" id="dock">
+    <div class="box">
+      <textarea id="t" rows="1" placeholder="Message AgriPilot…" enterkeyhint="send"></textarea>
+      <button class="mic" id="mic" title="Speak" aria-label="Speak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></svg></button>
+      <button class="go" id="go" title="Send" aria-label="Send" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></button>
+    </div>
+    <div class="hint" id="hint">Ask “status of T3”, “what failed?” or “today's summary” too.</div>
+    <div class="sugg">
+      <button data-ex="Need 10,000 coconuts, 18 rupees per coconut">🥥 New order<small>10,000 coconuts @ ₹18</small></button>
+      <button data-ex="send 5k coconuts at Rs 17.5 each">🚚 Another order<small>5k coconuts @ ₹17.5</small></button>
+      <button data-ex="Today's summary">📈 Today's summary<small>Deals, profit, warehouse</small></button>
+      <button data-ex="What needs my attention?">⚠️ What needs me?<small>Approvals and failures</small></button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ DASHBOARD ============ -->
+<main class="view" id="boardView" hidden>
+  <div class="board-wrap">
+    <section class="stats" id="stats">
+      <div class="stat"><span>Transactions</span><b id="s-all">0</b></div>
+      <div class="stat g"><span>🟢 Active / done</span><b id="s-done">0</b></div>
+      <div class="stat o"><span>🟠 In progress</span><b id="s-progress">0</b></div>
+      <div class="stat r" id="s-failed-box"><span>🔴 Need attention</span><b id="s-failed">0</b></div>
+      <div class="stat p"><span>Profit settled</span><b id="s-profit">₹0</b></div>
+    </section>
+    <div class="phone-legend"><span><i class="dot done"></i>Active</span><span><i class="dot progress"></i>In progress</span><span><i class="dot failed"></i>Failed</span><span id="wh2"></span></div>
+    <div class="boardhead">
+      <h2>Transactions</h2>
+      <div class="spacer"></div>
+      <button class="viewbtn" id="view" title="Switch layout" hidden></button>
+      <div class="tabs" id="tabs">
+        <button data-f="all" class="on">All<em id="c-all"></em></button>
+        <button data-f="done">Active<em id="c-done"></em></button>
+        <button data-f="progress">In progress<em id="c-progress"></em></button>
+        <button data-f="failed">Failed<em id="c-failed"></em></button>
+      </div>
+    </div>
+    <section class="board">
+      <div class="cols">
+        <div><span>1</span>Transaction</div>
+        <div><span>2</span>Price approval</div>
+        <div><span>3</span>Transport</div>
+        <div><span>4</span>Load delivered</div>
+      </div>
+      <div id="rows"><div class="empty"><div class="big">🥥</div><b>Loading…</b></div></div>
+    </section>
+    <p class="wh" id="wh" style="text-align:center;border:0"></p>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+               set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }};
+const COLS = [['transaction', 'Transaction'], ['approval', 'Price approval'], ['transport', 'Transport'], ['delivery', 'Load delivered']];
+const STEP = [['transaction', 'Order'], ['approval', 'Approval'], ['transport', 'Transport'], ['delivery', 'Delivered']];
+const ICON = {done: '✓', progress: '•••', failed: '!', closed: '–'};
+const BADGE = {done: 'Active', progress: 'In progress', failed: 'Needs attention', closed: 'Denied'};
+
+let data = null, offset = 0, busy = false, problem = '';
+let filter = store.get('agp-filter', 'all'), layout = 'phone', screen = store.get('agp-screen', 'chat');
+let msgs = store.get('agp-chat', []);           // [{r:'u'|'b', t:text, ids:[txn ids], err:bool}]
+const openCards = new Set(), cache = {};
+const byId = id => data && data.rows.find(r => r.id === id);
+
+// ---------------------------------------------------------------- server
+async function poll() {
+  try {
+    const r = await fetch('/api/board', {cache: 'no-store'});
+    if (r.status === 401) { problem = 'locked'; setLive(true); return draw(); }
+    if (r.status === 404) { problem = 'outdated'; setLive(false); return draw(); }
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json(); problem = '';
+    offset = data.now - Date.now() / 1000;
+    setLive(true);
+    if (!busy) draw();
+  } catch (e) { setLive(false); }
+}
+function setLive(on) { $('#live').classList.toggle('off', !on); $('#live span').textContent = on ? 'Live' : 'Offline'; }
+async function post(url, body) {
+  const r = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || ('Error ' + r.status));
+  return d;
+}
+
+// ---------------------------------------------------------------- shared pieces
+function set(el, html) { if (cache[el.id] !== html) { el.innerHTML = html; cache[el.id] = html; } }
+const eta = due => due ? `<span class="eta" data-due="${due}"></span>` : '';
+function tickEta() {
+  document.querySelectorAll('.eta[data-due]').forEach(el => {
+    const s = Math.max(0, Math.ceil(+el.dataset.due - (Date.now() / 1000 + offset)));
+    const t = '⏱ ' + (s ? 'next update in ' + s + 's' : 'any moment');
+    if (el.textContent !== t) el.textContent = t;
+  });
+}
+const when = r => new Date(r.created * 1000).toLocaleString([], {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+function stBox(c, extra = '') {
+  return `<div class="st s-${c.status}"><i class="dot"></i><div><b>${esc(c.label)}</b>${c.detail ? `<small>${esc(c.detail)}</small>` : ''}${c.status === 'progress' ? eta(c.due) : ''}${extra}</div></div>`;
+}
+function actions(r) {
+  if (r.can_decide) return `<div class="act"><button class="ok" data-a="approve" data-id="${esc(r.id)}">✓ Approve</button><button class="no" data-a="deny" data-id="${esc(r.id)}">✗ Deny</button></div>`;
+  if (r.can_retry) return `<div class="act"><button class="retry" data-a="retry" data-id="${esc(r.id)}">↻ Retry now</button></div>`;
+  return '';
+}
+function phoneCard(r, scope) {
+  const cols = r.columns, keys = STEP.map(([k]) => k);
+  const focus = keys.find(k => cols[k].status === 'failed') || keys.find(k => cols[k].status === 'progress')
+    || [...keys].reverse().find(k => cols[k].status === 'done' || cols[k].status === 'closed') || 'transaction';
+  const key = scope + ':' + r.id, open = openCards.has(key);
+  return `<div class="pcard o-${r.overall}">
+    <div class="pc-head" data-toggle="${esc(key)}">
+      <div class="who"><b>${esc(r.id)}</b> <span class="badge b-${r.overall}">${BADGE[r.overall] || r.overall}</span>
+        <div>${esc(r.qty_text)} coconuts <span>@ ${esc(r.offer)}/nut</span></div>
+        <small>${esc(r.buyer)} → ${esc(r.destination)} · ${when(r)}</small></div>
+      <span class="chev">${open ? '▲' : '▼'}</span>
+    </div>
+    <div class="track">${STEP.map(([k, n], i) => `<div class="tstep ${cols[k].status}"><span class="tc">${ICON[cols[k].status] || i + 1}</span><em>${n}</em></div>`).join('')}</div>
+    <div class="pc-now">${stBox(cols[focus], actions(r))}</div>
+    ${open ? `<div class="pc-more">${COLS.map(([k, n]) => `<div><div class="lbl">${n}</div>${stBox(cols[k])}</div>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+// ---------------------------------------------------------------- screens
+function applyScreen() {
+  $('#chatView').hidden = screen !== 'chat';
+  $('#boardView').hidden = screen !== 'board';
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.v === screen));
+  $('#newchat').style.visibility = screen === 'chat' ? 'visible' : 'hidden';
+  const phone = screen === 'chat' || layout === 'phone' || matchMedia('(max-width:760px)').matches;
+  document.body.classList.toggle('phone-ui', phone);
+  $('#view').textContent = layout === 'phone' ? '▦ Table' : '📱 Phone';
+  draw();
+}
+function draw() {
+  drawBoard(); drawChat();
+  const f = data ? data.totals.failed : 0;
+  $('#failbadge').hidden = !f; $('#failbadge').textContent = f;
+  tickEta();
+}
+
+// ---------------------------------------------------------------- dashboard
+function drawBoard() {
+  if (problem === 'locked') return set($('#rows'), '<div class="lock">🔒 The board is for the owner. Open the owner link once on this device.</div>');
+  if (problem === 'outdated') return set($('#rows'), '<div class="lock">⚠️ <b>The server is running older code.</b><br>Restart it (START_WINDOWS.bat or python server.py), then refresh.</div>');
+  if (!data) return;
+  const t = data.totals;
+  $('#s-all').textContent = t.all; $('#s-done').textContent = t.done;
+  $('#s-progress').textContent = t.progress; $('#s-failed').textContent = t.failed; $('#s-profit').textContent = t.profit;
+  $('#s-failed-box').classList.toggle('hot', t.failed > 0);
+  $('#c-all').textContent = t.all; $('#c-done').textContent = t.done; $('#c-progress').textContent = t.progress; $('#c-failed').textContent = t.failed;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.f === filter));
+  const w = data.warehouse;
+  $('#wh2').textContent = '🏚️ ' + (w.stock ? w.stock.toLocaleString('en-IN') : 'Empty');
+  $('#wh').textContent = '🏚️ Warehouse: ' + (w.stock ? w.stock.toLocaleString('en-IN') + ' nuts' : 'empty') + (w.reserved ? ' · ' + w.reserved.toLocaleString('en-IN') + ' reserved' : '');
+  const rows = data.rows.filter(r => filter === 'all' || r.overall === filter);
+  if (!rows.length) return set($('#rows'), data.rows.length
+    ? '<div class="empty"><div class="big">✨</div><b>Nothing here</b>No transactions match this filter.</div>'
+    : '<div class="empty"><div class="big">🥥</div><b>No transactions yet</b>Send an order from the chat and it appears here.</div>');
+  set($('#rows'), rows.map(r => {
+    const steps = COLS.map(([k]) => r.columns[k].status), tc = r.columns.transaction;
+    const first = `<div class="cell"><div class="lbl">Transaction</div>
+      <div class="tx-id"><b>${esc(r.id)}</b><span class="badge b-${r.overall}">${BADGE[r.overall] || r.overall}</span></div>
+      <div class="tx-qty">${esc(r.qty_text)} coconuts <span>@ ${esc(r.offer)}/nut</span></div>
+      <div class="tx-meta">${esc(r.buyer)} → ${esc(r.destination)} · ${when(r)}</div>
+      <div class="mini s-${tc.status}"><i class="dot"></i><b>${esc(tc.label)}</b>${tc.detail ? ' · ' + esc(tc.detail) : ''}</div>
+      <div class="bar">${steps.map(s => `<i class="${s}"></i>`).join('')}</div></div>`;
+    const cell = k => `<div class="cell"><div class="lbl">${COLS.find(c => c[0] === k)[1]}</div>${stBox(r.columns[k], k === 'approval' && r.can_decide ? actions(r) : '')}</div>`;
+    const alert = r.overall === 'failed'
+      ? `<div class="alertbar">⚠️ <span><b>${esc(r.id)} stopped:</b> ${esc(r.problem)}</span>${actions(r).replace('class="act"', 'class="act" style="margin:0"')}</div>` : '';
+    return `<div class="item o-${r.overall}"><div class="row">${first}${['approval', 'transport', 'delivery'].map(cell).join('')}${alert}</div></div>` + phoneCard(r, 'b');
+  }).join(''));
+}
+
+// ---------------------------------------------------------------- chat
+function greet() {
+  const h = new Date().getHours();
+  $('#greet').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
+}
+function drawChat() {
+  document.body.classList.toggle('chatting', msgs.length > 0);
+  set($('#thread'), msgs.map((m, i) => {
+    if (m.r === 'u') return `<div class="msg-u">${esc(m.t)}</div>`;
+    if (problem === 'locked' && i === msgs.length - 1 && m.ids && m.ids.length)
+      return `<div class="msg-b err"><div class="av">🥥</div><div class="bd"><div class="tx">${m.t}\n🔒 Open your private owner link once on this device to see live cards and approve.</div></div></div>`;
+    if (m.r === 'wait') return `<div class="msg-b"><div class="av">🥥</div><div class="bd"><div class="typing"><i></i><i></i><i></i></div></div></div>`;
+    const cards = (m.ids || []).map(id => byId(id)).filter(Boolean).map(r => phoneCard(r, 'c' + i)).join('');
+    return `<div class="msg-b ${m.err ? 'err' : ''}"><div class="av">🥥</div><div class="bd"><div class="tx">${m.t}</div>${cards}</div></div>`;
+  }).join(''));
+}
+function save() { store.set('agp-chat', msgs.filter(m => m.r !== 'wait').slice(-60)); }
+function say(html, ids, err) { msgs = msgs.filter(m => m.r !== 'wait'); msgs.push({r: 'b', t: html, ids: ids || [], err: !!err}); save(); draw(); scrollDown(); }
+function scrollDown() { requestAnimationFrame(() => window.scrollTo(0, document.body.scrollHeight)); }
+
+async function handle(text) {
+  msgs.push({r: 'u', t: text}, {r: 'wait'}); save(); draw(); scrollDown();
+  const q = text.toLowerCase(), idm = text.match(/\bT\s?(\d+)\b/i), id = idm ? 'T' + idm[1] : null;
+  const isOrder = /\b(coconuts?|nuts?|pieces?|pcs)\b/.test(q);
+  try {
+    if (!isOrder && id && /\b(approve|yes|ok|go ahead|confirm)\b/.test(q)) {
+      await post('/api/decision', {id, decision: 'approve'}); await poll();
+      return say(`Approved <b>${id}</b>. Booking the lorry and crew now; I'll update the card as it moves.`, [id]);
+    }
+    if (!isOrder && id && /\b(deny|reject|cancel|no)\b/.test(q)) {
+      await post('/api/decision', {id, decision: 'deny'}); await poll();
+      return say(`Denied <b>${id}</b>. Nothing was booked.`, [id]);
+    }
+    if (!isOrder && id && /\b(retry|again|fix)\b/.test(q)) {
+      await post('/api/retry', {id}); await poll();
+      return say(`Retrying <b>${id}</b> now.`, [id]);
+    }
+    if (!isOrder && id) {
+      await poll();
+      return byId(id) ? say(`Here's <b>${id}</b>:`, [id]) : say(`I can't find ${esc(id)}.`, [], true);
+    }
+    if (!isOrder && /(summary|report|today|profit|how.*(business|doing)|overview)/.test(q)) {
+      await poll(); const t = data.totals, w = data.warehouse;
+      return say(`📈 <b>Summary</b>\n${t.all} transaction${t.all === 1 ? '' : 's'} · 🟢 ${t.done} done · 🟠 ${t.progress} in progress · 🔴 ${t.failed} need attention\nProfit settled: <b>${t.profit}</b>\nWarehouse: ${w.stock ? w.stock.toLocaleString('en-IN') + ' nuts' : 'empty'}`);
+    }
+    if (!isOrder && /(fail|problem|attention|issue|stuck|needs? me|pending|waiting|approv)/.test(q)) {
+      await poll();
+      const need = data.rows.filter(r => r.overall === 'failed' || r.can_decide);
+      return need.length ? say(`${need.length} need you:`, need.slice(0, 6).map(r => r.id)) : say('All clear ✅ Nothing needs you right now.');
+    }
+    if (!isOrder && /(progress|running|road|transit|active|moving)/.test(q)) {
+      await poll();
+      const run = data.rows.filter(r => r.overall === 'progress');
+      return run.length ? say(`${run.length} in progress:`, run.slice(0, 6).map(r => r.id)) : say('Nothing is moving right now.');
+    }
+    if (!isOrder && /^(hi|hello|hey|namaste|help)\b/.test(q)) {
+      return say('Hi! Send me a buyer order like <b>“Need 10,000 coconuts, 18 rupees per coconut”</b>.\nYou can also ask “status of T3”, “what needs me?” or “today\'s summary”.');
+    }
+    const d = await post('/api/order', {text});
+    await poll();
+    say(`Got it. <b>${d.id}</b>: ${d.qty.toLocaleString('en-IN')} coconuts at ₹${d.offer} each.\nI'm pricing it now; the approval appears on this card in about 10 seconds.`, [d.id]);
+  } catch (e) {
+    say(esc(e.message) + (/try:/i.test(e.message) ? '' : '\nTry: “Need 10,000 coconuts, 18 rupees per coconut”'), [], true);
+  }
+}
+
+// ---------------------------------------------------------------- composer + mic
+const ta = $('#t');
+function fit() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 132) + 'px'; $('#go').disabled = !ta.value.trim(); }
+ta.addEventListener('input', fit);
+ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+$('#go').onclick = send;
+function send() {
+  const text = ta.value.trim();
+  if (!text) return;
+  if (rec) rec.stop();
+  ta.value = ''; fit(); handle(text);
+}
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+const HINT = $('#hint').textContent;
+function hint(t, on) { $('#hint').textContent = t || HINT; $('#hint').classList.toggle('rec', !!on); }
+$('#mic').onclick = () => {
+  if (rec) { rec.stop(); return; }
+  if (!SR) return hint('Voice typing isn\'t supported in this browser. Use Chrome or Edge, or your keyboard\'s mic.');
+  if (!window.isSecureContext) return hint('The mic needs https or localhost. On your phone, tap the mic on your keyboard instead.');
+  rec = new SR();
+  rec.lang = 'en-IN'; rec.interimResults = true; rec.continuous = false;
+  const before = ta.value ? ta.value.trim() + ' ' : '';
+  rec.onresult = e => {
+    let txt = '';
+    for (const r of e.results) txt += r[0].transcript;
+    ta.value = before + txt; fit();
+  };
+  rec.onerror = e => hint(e.error === 'not-allowed' ? 'Microphone blocked. Allow it in the browser\'s site settings.' : 'Didn\'t catch that. Tap the mic and try again.');
+  rec.onend = () => {
+    rec = null; $('#mic').classList.remove('rec');
+    if ($('#hint').classList.contains('rec')) hint();
+    if (ta.value.trim()) ta.focus();
+  };
+  rec.start();
+  $('#mic').classList.add('rec'); hint('🎙️ Listening… speak the order, then tap send', true);
+};
+
+// ---------------------------------------------------------------- clicks
+document.addEventListener('click', async e => {
+  const ex = e.target.closest('[data-ex]');
+  if (ex) return handle(ex.dataset.ex);
+  const sg = e.target.closest('#seg button');
+  if (sg) { screen = sg.dataset.v; store.set('agp-screen', screen); window.scrollTo(0, 0); return applyScreen(); }
+  if (e.target.closest('#newchat')) { msgs = []; save(); openCards.clear(); draw(); ta.focus(); return; }
+  if (e.target.closest('#view')) { layout = layout === 'phone' ? 'table' : 'phone'; store.set('agp-view', layout); return applyScreen(); }
+  const tab = e.target.closest('#tabs button');
+  if (tab) { filter = tab.dataset.f; store.set('agp-filter', filter); return draw(); }
+  const tg = e.target.closest('[data-toggle]');
+  if (tg) { const k = tg.dataset.toggle; openCards.has(k) ? openCards.delete(k) : openCards.add(k); return draw(); }
+  const b = e.target.closest('button[data-a]');
+  if (!b) return;
+  busy = true;
+  document.querySelectorAll(`button[data-id="${b.dataset.id}"]`).forEach(x => x.disabled = true);
+  const a = b.dataset.a, id = b.dataset.id;
+  try {
+    await post(a === 'retry' ? '/api/retry' : '/api/decision', a === 'retry' ? {id} : {id, decision: a});
+    busy = false; await poll();
+    if (screen === 'chat') say(a === 'approve' ? `✓ Approved <b>${id}</b>. Booking the lorry and crew now; the card above updates as it moves.` : a === 'deny' ? `Denied <b>${id}</b>. Nothing was booked.` : `Retrying <b>${id}</b> now.`);
+  } catch (err) {
+    busy = false;
+    if (screen === 'chat') say(esc(err.message), [], true); else alert(err.message);
+  }
+  poll();
+});
+
+matchMedia('(max-width:760px)').addEventListener('change', applyScreen);
+greet(); fit(); applyScreen(); poll(); setInterval(poll, 1000);
+</script>
+</body>
+</html>

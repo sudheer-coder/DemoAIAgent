@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: AgriPilot
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: OWNER_KEY
+        generateValue: true
